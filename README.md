@@ -1,2 +1,2 @@
 # photos-vectorizer
-Image Vectorizer for use with johnligget/Photos for image retrieval
+Image Vectorizer for use with johnliggett/Photos for image retrieval

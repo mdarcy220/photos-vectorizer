@@ -21,8 +21,9 @@ Once the training data is set up, just run:
 python3 train_model.py
 ```
 
-This will train the model and save it in `largedata/autoencoder_checkpoint`. Then you can test a sample query from the model with:
+This will train the model and save it in `largedata/autoencoder_checkpoint` (this may take a while). Then you can test a sample query from the model with:
 ```
 python3 do_image_lookup.py
 ```
 
+An NVIDIA GPU is highly recommended. Training on a CPU may take days or even weeks, whereas a GTX 1070/1080 will complete the (admittedly short for testing purposes) training loop in just a few minutes.

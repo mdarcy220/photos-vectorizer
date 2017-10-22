@@ -21,6 +21,8 @@ z = C.load_model('largedata/autoencoder_checkpoint')
 input_var = z.arguments[0]
 
 latent_mean = C.combine([z.find_by_name('latent_mean').owner])
+latent_log_sigma = C.combine([z.find_by_name('latent_log_sigma').owner])
+latent_sigma = C.combine([z.find_by_name('latent_sigma').owner])
 noisy_scaled_input = C.combine([z.find_by_name('noisy_scaled_input').owner])
 
 print('Net loaded. Loading images... ', end='') ; sys.stdout.flush()
@@ -29,8 +31,10 @@ print('Done.')
 
 image_to_lookup = input_imgs_reshaped[4]
 
+encoding_out = C.ops.splice(latent_mean, latent_log_sigma)
+
 def encode(img_data):
-	return latent_mean.eval({input_var: img_data})
+	return encoding_out.eval({input_var: img_data})
 
 img_lookup_table = {}
 for i in range(len(input_imgs_reshaped)):
@@ -47,6 +51,7 @@ def lookup_img(img_data, k_max=1, find_worst=False):
 	i = 0
 	for key in img_lookup_table:
 		diff = encoded_image - img_lookup_table[key]
+		print(img_lookup_table[key])
 		dist = np.dot(diff, diff)
 
 		# If we're looking for the worst match, reverse the distance

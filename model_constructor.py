@@ -34,13 +34,13 @@ def construct_model(image_height, image_width, num_channels, encoded_size=512):
 
 	rs1 = C.ops.reshape(fc5, (16,50,50))
 	pdeconv1 = C.layers.ConvolutionTranspose2D((3,3), cMap, strides=(3,3), pad=False, bias=True, init=C.glorot_uniform(1), name="sln")(rs1)
-	deconv1 = C.layers.ConvolutionTranspose2D((5,5), cMap, pad=True, name="sln")(pdeconv1)
+	deconv1 = C.layers.ConvolutionTranspose2D((5,5), cMap//2+1, pad=True, name="sln2")(pdeconv1)
 
 	deconv2 = C.layers.ConvolutionTranspose2D((5,5), num_channels, activation=None, pad=True, bias=False)(deconv1)
 
-	latent_log_sigma = C.layers.Dense(encoded_size, activation=None)(act2)
+	latent_log_sigma = C.layers.Dense(encoded_size, activation=None, name='latent_log_sigma')(act2)
 	latent_mean = C.layers.Dense(encoded_size, activation=C.ops.tanh, name='latent_mean')(act2)
-	latent_sigma = C.ops.exp(latent_log_sigma)
+	latent_sigma = C.ops.exp(latent_log_sigma, name='latent_sigma')
 	latent_vec = C.ops.plus(latent_mean, C.ops.element_times(latent_sigma, C.random.normal_like(latent_log_sigma)))
 	latent_kl_loss = -0.5 * C.ops.reduce_mean(1 + latent_log_sigma - C.ops.square(latent_mean) - latent_sigma, axis=-1)
 	latent_kl_loss.set_name('latent_kl_loss')

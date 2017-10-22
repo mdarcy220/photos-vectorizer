@@ -3,6 +3,12 @@ Image Vectorizer for use with johnliggett/Photos for image retrieval.
 
 ## How to run it
 
+### Dependencies
+
+A complete list of dependencies is not available, but at the very least you will need CNTK 2 and Python 3 installed, along with the Python3 modules Numpy, Scipy, and Matplotlib.
+
+### Running
+
 You will need training data in the `largedata/train/` directory (you will need to create the `train` folder). Both .jpg and .png images will be detected, but they must have a very specific shape:
 
 - They must have three color channels (i.e., RGB but NOT RGBA)

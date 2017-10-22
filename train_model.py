@@ -43,7 +43,7 @@ _, input_imgs_reshaped = data_load.get_images()
 print('Done.')
 
 
-plt.ion()
+#plt.ion()
 fig = plt.gcf()
 fig.set_size_inches(12,9)
 def test_image(img_num):
@@ -68,8 +68,9 @@ def test_image(img_num):
 	plt.subplot(1, 3, 3)
 	plt.imshow(output_img2)
 
-	plt.draw()
-	plt.pause(0.0000001)
+	#plt.draw()
+	#plt.pause(0.0000001)
+	plt.show()
 
 test_image(10)
 
@@ -113,7 +114,7 @@ for epoch in range(55):
 		sample_count += minibatch_size
 
 	trainer.summarize_training_progress()
-	test_image(10)
+	#test_image(10)
 
 save_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', "autoencoder_checkpoint")
 model.save(save_filename)

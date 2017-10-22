@@ -1,0 +1,4 @@
+# This should be an empty directory, so ignore everything except this
+# .gitignore itself
+*
+!.gitignore

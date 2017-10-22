@@ -14,7 +14,7 @@ You will need training data in the `largedata/train/` directory (you will need t
 - They must have three color channels (i.e., RGB but NOT RGBA)
 - The resolution must be _exactly_ `250x250` pixels
 
-These should guarantee that the shape of the image tensor in memory will be `(250, 250, 3)` when loaded by `scipy.ndimage.imread`. More sophisticated preprocessing will likely be added in the future to rlax these requirements.
+These should guarantee that the shape of the image tensor in memory will be `(250, 250, 3)` when loaded by `scipy.ndimage.imread`. More sophisticated preprocessing will likely be added in the future to relax these requirements.
 
 Once the training data is set up, just run:
 ```

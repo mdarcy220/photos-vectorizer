@@ -9,6 +9,20 @@ import heapq
 import cntk as C
 import model_constructor
 import data_load
+import argparse
+
+
+save_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', "autoencoder_checkpoint")
+parser = argparse.ArgumentParser()
+parser.add_argument('--no-plots', dest='no_plots', default=False, action='store_true', help='Disable pyplot displays before and after training')
+parser.add_argument('--num-epochs', dest='num_epochs', default=sys.maxsize, action='store', type=int, help='Number of epochs to train for')
+parser.add_argument('--save-interval', dest='save_interval', default=sys.maxsize, action='store', type=int, help='How often to save the network')
+parser.add_argument('--display-interval', dest='display_interval', default=-1, action='store', type=int, help='How often (in minibatches) to display the training progress')
+parser.add_argument('--minibatch-size', dest='minibatch_size', default=128, action='store', type=int, help='Minibatch size')
+parser.add_argument('--start-lr', dest='start_lr', default=1.4e-3, action='store', type=float, help='Initial learning rate')
+parser.add_argument('--lr-decay', dest='lr_decay', default=0.93, action='store', type=float, help='Learning rate decrease factor')
+parser.add_argument('--save-filename', dest='save_filename', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', "autoencoder_checkpoint"), action='store', type=str, help='File to save the model in')
+cmdargs = parser.parse_args(sys.argv[1:])
 
 C.device.try_set_default_device(C.device.gpu(0))
 # Select the right target device when this is being tested:
@@ -21,11 +35,11 @@ if 'TEST_DEVICE' in os.environ:
 # Ensure we always get the same amount of randomness
 np.random.seed(0)
 
-image_height = 150
-image_width  = 150
+image_height = 128
+image_width  = 128
 num_channels = 3
 image_shape = (num_channels, image_height, image_width)
-encoded_size = 2048
+encoded_size = 1024
 
 outputs, input_var, overall_loss = model_constructor.construct_model(image_height, image_width, num_channels, encoded_size=encoded_size)
 model = outputs[0]
@@ -39,7 +53,7 @@ rmse_eval = rmse_loss
 
 
 print('Net constructed. Loading images... ', end='') ; sys.stdout.flush()
-_, input_imgs_reshaped = data_load.get_images()
+_, input_imgs_reshaped = data_load.get_images(max_imgs=None, img_size=(image_width, image_height))
 print('Done.')
 
 
@@ -48,7 +62,7 @@ fig = plt.gcf()
 fig.set_size_inches(12,9)
 def test_image(img_num):
 
-	img = np.clip(noisy_scaled_input.eval({input_var: input_imgs_reshaped[img_num]}).reshape(image_shape), 0.0, 255.0).astype(np.float32)
+	img = np.clip(noisy_scaled_input.eval({input_var: input_imgs_reshaped[img_num]}).reshape(image_shape), 0.0, 1.0).astype(np.float32)
 	tmp2 = C.ops.clip(model, 0.0, 1.0).eval({input_var: img})
 
 	print("RMSE Loss: {}".format(rmse_loss.eval({input_var: img})))
@@ -72,54 +86,53 @@ def test_image(img_num):
 	#plt.pause(0.0000001)
 	plt.show()
 
-test_image(10)
+if not cmdargs.no_plots:
+	test_image(10)
 
-# training config
-max_epochs = 12
-epoch_size = 2048
-minibatch_size = 128
 
-mn = 0
+def init_trainer(epoch_size=32768, minibatch_size=128, start_lr=1.4e-3, lr_decay=0.93):
+	# Set learning parameters
+	#lr_schedule = C.learning_rate_schedule([0.01], C.learners.UnitType.sample, epoch_size)
+	#mm_schedule = C.learners.momentum_as_time_constant_schedule([1900], epoch_size)
 
-# Set learning parameters
-lr_schedule = C.learning_rate_schedule([0.01], C.learners.UnitType.sample, epoch_size)
-mm_schedule = C.learners.momentum_as_time_constant_schedule([1900], epoch_size)
+	# Instantiate the trainer object to drive the model training
+	#learner = C.learners.nesterov(model.parameters, lr_schedule, mm_schedule, unit_gain=True)
+	#learner = C.learners.adadelta(model.parameters)
+	learning_rate = start_lr
+	lr_schedule = C.learning_rate_schedule([learning_rate * (lr_decay**i) for i in range(30)], C.UnitType.sample, epoch_size=epoch_size)
+	beta1 = C.momentum_schedule(0.9)
+	beta2 = C.momentum_schedule(0.999)
+	learner = C.adam(model.parameters,
+		lr=lr_schedule,
+		momentum=beta1,
+		variance_momentum=beta2,
+		epsilon=1.5e-8,
+		gradient_clipping_threshold_per_sample=3.0)
+	progress_printer = C.logging.ProgressPrinter(tag='Training', freq=(minibatch_size*cmdargs.display_interval if cmdargs.display_interval >= 0 else None))
+	trainer = C.Trainer(model, (overall_loss, rmse_eval), learner, progress_printer)
 
-# Instantiate the trainer object to drive the model training
-#learner = C.learners.nesterov(model.parameters, lr_schedule, mm_schedule, unit_gain=True)
-#learner = C.learners.adadelta(model.parameters)
-learning_rate = 1.4e-3
-lr_schedule = C.learning_rate_schedule([learning_rate * (0.93**i) for i in range(30)], C.UnitType.sample, epoch_size=20000)
-beta1 = C.momentum_schedule(0.9)
-beta2 = C.momentum_schedule(0.999)
-learner = C.adam(model.parameters,
-	lr=lr_schedule,
-	momentum=beta1,
-	variance_momentum=beta2,
-	epsilon=1.5e-8,
-	gradient_clipping_threshold_per_sample=3.0)
-progress_printer = C.logging.ProgressPrinter(tag='Training')
-trainer = C.Trainer(model, (overall_loss, rmse_eval), learner, progress_printer)
-
+	return trainer
 
 C.logging.log_number_of_parameters(model) ; print()
 
-data = {input_var: input_imgs_reshaped};
+
+minibatch_size = cmdargs.minibatch_size
+epoch_size = 16384
+trainer = init_trainer(epoch_size=epoch_size, minibatch_size=minibatch_size, start_lr=cmdargs.start_lr, lr_decay=cmdargs.lr_decay)
 
 # Get minibatches of images to train with and perform model training
-for epoch in range(55):
+for epoch in range(cmdargs.num_epochs):
 	sample_count = 0
 	while sample_count < epoch_size:  # loop over minibatches in the epoch
 		trainer.train_minibatch({input_var: input_imgs_reshaped[np.random.choice(len(input_imgs_reshaped), size=minibatch_size, replace=False)]})
 		sample_count += minibatch_size
-
+	if (epoch+1) % cmdargs.save_interval == 0:
+		model.save(cmdargs.save_filename)
 	trainer.summarize_training_progress()
-	#test_image(10)
 
-save_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', "autoencoder_checkpoint")
-model.save(save_filename)
+model.save(cmdargs.save_filename)
 
-
-test_image(10)
+if not cmdargs.no_plots:
+	test_image(10)
 
 

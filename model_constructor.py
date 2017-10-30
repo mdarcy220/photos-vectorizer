@@ -12,7 +12,7 @@ def construct_model(image_height, image_width, num_channels, encoded_size=512):
 
 	# Input variable and normalization
 	input_var = C.ops.input_variable(image_shape, dtype=np.float32, name='image_input')
-	scaled_input = C.ops.element_divide(input_var, C.ops.constant(256.), name="scaled_input")
+	scaled_input = input_var  #C.ops.element_divide(input_var, C.ops.constant(256.), name="scaled_input")
 	noisy_scaled_input = C.ops.plus(scaled_input, C.random.normal(image_shape, scale=0.02), name='noisy_scaled_input')
 
 	cMap = 16
@@ -30,11 +30,11 @@ def construct_model(image_height, image_width, num_channels, encoded_size=512):
 
 	fc3 = C.layers.Dense(2048, activation=C.ops.leaky_relu)(C.ops.placeholder(shape=encoded_size))
 	fc4 = C.layers.Dense(2048, activation=C.ops.leaky_relu)(fc3)
-	fc5 = C.layers.Dense(16*50*50, activation=C.ops.leaky_relu)(fc4)
+	fc5 = C.layers.Dense(cMap*42*42, activation=C.ops.leaky_relu)(fc4)
 
-	rs1 = C.ops.reshape(fc5, (16,50,50))
-	pdeconv1 = C.layers.ConvolutionTranspose2D((3,3), cMap, strides=(3,3), pad=False, bias=True, init=C.glorot_uniform(1), name="sln")(rs1)
-	deconv1 = C.layers.ConvolutionTranspose2D((5,5), cMap//2+1, pad=True, name="sln2")(pdeconv1)
+	rs1 = C.ops.reshape(fc5, (cMap,42,42))
+	pdeconv1 = C.layers.ConvolutionTranspose2D((5,5), cMap, strides=(3,3), pad=False, bias=True, init=C.glorot_uniform(1), name="sln")(rs1)
+	deconv1 = C.layers.ConvolutionTranspose2D((5,5), cMap, strides=(1,1), pad=True, name="sln2")(pdeconv1)
 
 	deconv2 = C.layers.ConvolutionTranspose2D((5,5), num_channels, activation=None, pad=True, bias=False)(deconv1)
 

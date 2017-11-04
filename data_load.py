@@ -60,10 +60,8 @@ class ImageDataLoader:
 
 
 	def get_raw(self, img_num):
-		with warnings.catch_warnings():
-			warnings.simplefilter('ignore')
-			filename = self._img_filenames[img_num]
-			return self.fix_img_size(scipy.ndimage.io.imread(filename))
+		filename = self._img_filenames[img_num]
+		return self.fix_img_size(scipy.ndimage.io.imread(filename))
 
 
 	def get_reshaped(self, img_num):
@@ -75,7 +73,7 @@ class ImageDataLoader:
 
 
 	def fix_img_size(self, img_data):
-		return skimage.transform.resize(img_data[:,:,:3], self._img_size)
+		return skimage.transform.resize(img_data[:,:,:3], self._img_size, mode='reflect')
 
 
 	def num_images(self):

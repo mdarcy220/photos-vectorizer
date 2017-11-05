@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+import version_check
+version_check.assert_min_version('3.5')
+
 import http.server
 import os
 import urllib.parse

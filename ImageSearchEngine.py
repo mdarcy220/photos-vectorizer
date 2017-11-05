@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+import version_check
+version_check.assert_min_version('3.5')
+
 import numpy as np
 import os
 import sys
@@ -7,7 +10,6 @@ import time
 import heapq
 from ImageDataLoader import FilesystemImageDataLoader
 import ImageVectorize
-
 
 class ImageSearchEngine:
 	def __init__(self, encoder_class=ImageVectorize.FlatVectorizer, max_images=sys.maxsize):

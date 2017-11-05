@@ -1,4 +1,7 @@
 
+import version_check
+version_check.assert_min_version('3.5')
+
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +13,6 @@ import cntk as C
 import model_constructor
 import data_load
 import argparse
-
 
 save_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', "autoencoder_checkpoint")
 parser = argparse.ArgumentParser()

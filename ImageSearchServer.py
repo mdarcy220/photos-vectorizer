@@ -1,21 +1,18 @@
 #!/usr/bin/python3
 
 import http.server
-import re
 import os
-import cgi
 import urllib.parse
-import posixpath
 import io
-import shutil
 import imageio
 import scipy.ndimage
-import matplotlib.pyplot as plt
 import skimage.transform
 import numpy as np
 import do_image_lookup
 import MySQLdb
 import json
+import sys
+import ImageVectorize
 
 conn = MySQLdb.connect('127.0.0.1', 'root', 'DM44DoJ8alquuShI', 'Photos')
 
@@ -46,7 +43,7 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 			self._do_imagesearch_POST()
 		else:
 			self._do_default_POST()
-			
+
 	def _do_default_POST(self):
 		err_msg = "There's nothing here. Double-check that you are accessing the right endpoint"
 		self.send_response(404)
@@ -97,11 +94,11 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 			return response
 
 		image_results = []
-		loader = do_image_lookup.image_loader
+		loader = self.server.search_engine.image_loader
 		try:
 			raw_image_data = scipy.ndimage.imread(filename)
 			image_data = loader.reshape_img(loader.fix_img_size(raw_image_data))
-			image_results = do_image_lookup.lookup_img(image_data, k_max=max_results)
+			image_results = self.server.search_engine.lookup_img(image_data, k_max=max_results)
 		except IOError:
 			response['status'] = 500
 			response['body']['errstr'] = "Failed to parse image data"
@@ -110,14 +107,30 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 			response['status'] = 500
 			response['body']['errstr'] = "Failed to process image data"
 			return response
-		
+
 		for result in image_results:
 			response['body']['images'].append({'img_id': int(result[1]), 'diff': float(result[0])})
 
 		return response
 
 
+class ImageSearchServer(http.server.HTTPServer):
+	def __init__(self, config_options, search_engine, *args, **kwargs):
+		self.config_options = config_options
+		self.search_engine = search_engine
+		super(ImageSearchServer, self).__init__(*args, **kwargs)
+
+
 if __name__ == '__main__':
-	server = http.server.HTTPServer(('', 8000), ImageSearchRequestHandler)
+	from argparse import ArgumentParser
+	parser = ArgumentParser()
+	parser.add_argument('--port', type=int, action='store', default=8000, help='Port to run the server on')
+	parser.add_argument('--vectorizer-type', type=str, action='store', default='autoencoder', help='Type of image vectorizer to use')
+	cmdargs = parser.parse_args(sys.argv[1:])
+
+	encoder_class = ImageVectorize.AutoencoderVectorizer if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorizer.FlatVectorizer
+
+	server = ImageSearchServer(None, do_image_lookup.ImageSearchEngine(encoder_class=encoder_class, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)
 	server.serve_forever()
+
 	conn.close()

@@ -1,0 +1,2 @@
+from .AutoencoderVectorizer import AutoencoderVectorizer
+from .FlatVectorizer import FlatVectorizer

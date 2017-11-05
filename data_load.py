@@ -11,7 +11,7 @@ import sys
 
 default_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', 'train')
 
-class ImageDataLoader:
+class FilesystemImageDataLoader:
 
 	## Constructor.
 	#

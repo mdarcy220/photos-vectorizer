@@ -16,6 +16,7 @@ import MySQLdb
 import json
 import sys
 import ImageVectorize
+import ImageDataLoader
 
 conn = MySQLdb.connect('127.0.0.1', 'root', 'DM44DoJ8alquuShI', 'Photos')
 
@@ -127,13 +128,15 @@ class ImageSearchServer(http.server.HTTPServer):
 if __name__ == '__main__':
 	from argparse import ArgumentParser
 	parser = ArgumentParser()
-	parser.add_argument('--port', type=int, action='store', default=8000, help='Port to run the server on')
-	parser.add_argument('--vectorizer-type', type=str, action='store', default='autoencoder', help='Type of image vectorizer to use')
+	parser.add_argument('--port', dest='port', type=int, action='store', default=8000, help='Port to run the server on')
+	parser.add_argument('--vectorizer-type', dest='vectorizer_type', type=str, action='store', default='autoencoder', help='Type of image vectorizer to use')
+	parser.add_argument('--image-source-type', dest='image_source_type', type=str, action='store', default='mysql', help='Type of image source to use')
 	cmdargs = parser.parse_args(sys.argv[1:])
 
-	encoder_class = ImageVectorize.AutoencoderVectorizer if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorizer.FlatVectorizer
+	vectorizer = ImageVectorize.AutoencoderVectorizer() if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorizer.FlatVectorizer()
+	image_loader = ImageDataLoader.MysqlImageDataLoader() if cmdargs.image_source_type == 'mysql' else ImageDataLoader.FilesystemImageDataLoader()
 
-	server = ImageSearchServer(None, ImageSearchEngine(encoder_class=encoder_class, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)
+	server = ImageSearchServer(None, ImageSearchEngine(vectorizer=vectorizer, image_loader=image_loader, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)
 	server.serve_forever()
 
 	conn.close()

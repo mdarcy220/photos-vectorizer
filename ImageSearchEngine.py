@@ -12,13 +12,15 @@ from ImageDataLoader import FilesystemImageDataLoader
 import ImageVectorize
 
 class ImageSearchEngine:
-	def __init__(self, encoder_class=ImageVectorize.FlatVectorizer, max_images=sys.maxsize):
+	def __init__(self, vectorizer=ImageVectorize.FlatVectorizer(), image_loader=None, max_images=sys.maxsize):
 		self._max_images = max_images
 		print('Initializing vectorizer... ', end='') ; sys.stdout.flush()
-		self._vectorizer = encoder_class()
+		self._vectorizer = vectorizer
 		print('Done.')
 
-		self.image_loader = FilesystemImageDataLoader()
+		self.image_loader = image_loader
+		if self.image_loader is None:
+			self.image_loader = FilesystemImageDataLoader()
 
 		# This must be called only AFTER initializing self._vectorizer
 		self._img_lookup_table = self._init_lookup_table()
@@ -27,14 +29,18 @@ class ImageSearchEngine:
 	def _init_lookup_table(self):
 		status_str = 'Added a total of {:d} images to the lookup table'
 		num_images = min(self.image_loader.num_images(), self._max_images)
+		num_so_far = 0
 
 		img_lookup_table = {}
-		for i in range(num_images):
+		for i in self.image_loader.get_valid_img_ids():
 			img_lookup_table[i] = self._vectorizer.encode(self.image_loader.get_reshaped(i))
 			if i % 500 == 0:
 				print(status_str.format(i), end="\r")
+			num_so_far += 1
+			if num_images < num_so_far:
+				break
 
-		print(status_str.format(num_images))
+		print(status_str.format(num_so_far))
 
 		return img_lookup_table
 

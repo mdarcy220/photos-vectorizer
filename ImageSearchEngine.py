@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import heapq
-from data_load import FilesystemImageDataLoader
+from ImageDataLoader import FilesystemImageDataLoader
 import ImageVectorize
 
 

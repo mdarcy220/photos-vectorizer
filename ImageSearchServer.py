@@ -8,7 +8,7 @@ import imageio
 import scipy.ndimage
 import skimage.transform
 import numpy as np
-import do_image_lookup
+from ImageSearchEngine import ImageSearchEngine
 import MySQLdb
 import json
 import sys
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
 	encoder_class = ImageVectorize.AutoencoderVectorizer if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorizer.FlatVectorizer
 
-	server = ImageSearchServer(None, do_image_lookup.ImageSearchEngine(encoder_class=encoder_class, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)
+	server = ImageSearchServer(None, ImageSearchEngine(encoder_class=encoder_class, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)
 	server.serve_forever()
 
 	conn.close()

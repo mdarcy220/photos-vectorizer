@@ -11,7 +11,7 @@ import time
 import heapq
 import cntk as C
 import model_constructor
-import data_load
+from ImageDataLoader import FilesystemImageDataLoader
 import argparse
 
 save_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'largedata', "autoencoder_checkpoint")
@@ -55,7 +55,8 @@ rmse_eval = rmse_loss
 
 
 print('Net constructed. Loading images... ', end='') ; sys.stdout.flush()
-_, input_imgs_reshaped = data_load.get_images(max_imgs=None, img_size=(image_width, image_height))
+image_loader = FilesystemImageLoader(img_size=(image_width, image_height))
+_, input_imgs_reshaped = image_loader.get_all_image_data(max_imgs=None, img_size=(image_width, image_height))
 print('Done.')
 
 

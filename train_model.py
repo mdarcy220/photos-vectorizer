@@ -55,8 +55,8 @@ rmse_eval = rmse_loss
 
 
 print('Net constructed. Loading images... ', end='') ; sys.stdout.flush()
-image_loader = FilesystemImageLoader(img_size=(image_width, image_height))
-_, input_imgs_reshaped = image_loader.get_all_image_data(max_imgs=None, img_size=(image_width, image_height))
+image_loader = FilesystemImageDataLoader(img_size=(image_width, image_height))
+_, input_imgs_reshaped = image_loader.get_all_image_data(max_imgs=None)
 print('Done.')
 
 

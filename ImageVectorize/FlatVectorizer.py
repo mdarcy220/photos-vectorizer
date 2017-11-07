@@ -7,7 +7,7 @@ class FlatVectorizer:
 		pass
 
 	def encode(self, img_data):
-		return np.flatten(img_data)
+		return img_data.flatten()
 
 
 

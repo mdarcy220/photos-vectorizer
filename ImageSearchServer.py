@@ -133,7 +133,7 @@ if __name__ == '__main__':
 	parser.add_argument('--image-source-type', dest='image_source_type', type=str, action='store', default='mysql', help='Type of image source to use')
 	cmdargs = parser.parse_args(sys.argv[1:])
 
-	vectorizer = ImageVectorize.AutoencoderVectorizer() if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorizer.FlatVectorizer()
+	vectorizer = ImageVectorize.AutoencoderVectorizer() if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorize.FlatVectorizer()
 	image_loader = ImageDataLoader.MysqlImageDataLoader() if cmdargs.image_source_type == 'mysql' else ImageDataLoader.FilesystemImageDataLoader()
 
 	server = ImageSearchServer(None, ImageSearchEngine(vectorizer=vectorizer, image_loader=image_loader, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)

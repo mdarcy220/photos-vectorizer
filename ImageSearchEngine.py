@@ -45,11 +45,16 @@ class ImageSearchEngine:
 		return img_lookup_table
 
 
-	def lookup_img(self, img_data, k_max=1, find_worst=False):
+	def lookup_img(self, img_data, candidate_set=None, k_max=1, find_worst=False):
+		if candidate_set is None:
+			candidate_set = set(self._img_lookup_table.keys())
+		else:
+			candidate_set = set(candidate_set).intersection(set(self._img_lookup_table.keys()))
+
 		encoded_image = self._vectorizer.encode(img_data).reshape(-1)
 		min_dist_keys = []
 		i = 0
-		for key in self._img_lookup_table:
+		for key in candidate_set:
 			diff = encoded_image - self._img_lookup_table[key]
 			dist = np.dot(diff, diff)
 

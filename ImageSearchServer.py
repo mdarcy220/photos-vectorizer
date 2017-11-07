@@ -28,7 +28,8 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 			<body>
 			<form method="post" action="/imagesearch">
 				<label for="img_id">Image ID:</label><input name="img_id" type="number"/><br />
-				<label for="max_results">Max Results:</label><input name="max_results" type="number"/>
+				<label for="owner_id">Owner ID:</label><input name="owner_id" type="number"/><br />
+				<label for="max_results">Max Results:</label><input name="max_results" type="number"/><br />
 				<input type="submit" value="send"/></form>
 			</body>
 			</html>
@@ -64,12 +65,15 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 		req_body = urllib.parse.parse_qs(self.rfile.read(content_length).decode())
 
 		img_id = int(req_body['img_id'][0])
+		owner_id = None
+		if 'owner_id' in req_body:
+			owner_id = int(req_body['owner_id'][0])
 
 		max_results = 10
 		if 'max_results' in req_body:
 			max_results = int(req_body['max_results'][0])
 
-		response = self.do_image_search(img_id, max_results=max_results)
+		response = self.do_image_search(img_id, owner_id, max_results=max_results)
 		response_body = json.dumps(response['body']).encode()
 
 		self.send_response(response['status'])
@@ -80,7 +84,7 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 		f.write(response_body)
 		f.flush()
 
-	def do_image_search(self, img_id, max_results=10):
+	def do_image_search(self, img_id, owner_id, max_results=10):
 		response = {'status': 200, 'body': {'images': list(), 'errstr': ''}}
 
 		cur = conn.cursor()
@@ -102,7 +106,11 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 		try:
 			raw_image_data = scipy.ndimage.imread(filename)
 			image_data = loader.reshape_img(loader.fix_img_size(raw_image_data))
-			image_results = self.server.search_engine.lookup_img(image_data, k_max=max_results)
+			candidate_set = None
+			if owner_id is not None:
+				cur.execute("SELECT photo_id FROM OwnedPhoto WHERE owner_id = %s", [owner_id])
+				candidate_set = set({int(resultrow[0]) for resultrow in cur})
+			image_results = self.server.search_engine.lookup_img(image_data, candidate_set=candidate_set, k_max=max_results)
 		except IOError:
 			response['status'] = 500
 			response['body']['errstr'] = "Failed to parse image data"

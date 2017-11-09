@@ -106,10 +106,15 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 		try:
 			raw_image_data = scipy.ndimage.imread(filename)
 			image_data = loader.reshape_img(loader.fix_img_size(raw_image_data))
+
 			candidate_set = None
+			candidate_dict = None
 			if owner_id is not None:
-				cur.execute("SELECT photo_id FROM OwnedPhoto WHERE owner_id = %s", [owner_id])
-				candidate_set = set({int(resultrow[0]) for resultrow in cur})
+				candidate_dict = dict()
+				cur.execute("SELECT photo_id, url FROM OwnedPhoto WHERE owner_id = %s", [owner_id])
+				for resultrow in cur:
+					candidate_dict[int(resultrow[0])] = resultrow[1]
+				candidate_set = set(candidate_dict.keys())
 			image_results = self.server.search_engine.lookup_img(image_data, candidate_set=candidate_set, k_max=max_results)
 		except IOError:
 			response['status'] = 500
@@ -122,6 +127,8 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 
 		for result in image_results:
 			response['body']['images'].append({'img_id': int(result[1]), 'diff': float(result[0])})
+			if candidate_dict is not None:
+				response['body']['images'][-1]['url'] = candidate_dict[int(result[1])]
 
 		return response
 

@@ -22,6 +22,12 @@ class ImageSearchEngine:
 		if self.image_loader is None:
 			self.image_loader = FilesystemImageDataLoader()
 
+		self.reload()
+
+
+	def reload(self, image_loader=None):
+		self.image_loader.reload()
+
 		# This must be called only AFTER initializing self._vectorizer
 		self._img_lookup_table = self._init_lookup_table()
 

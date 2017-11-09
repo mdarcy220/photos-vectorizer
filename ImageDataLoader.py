@@ -23,7 +23,10 @@ class FilesystemImageDataLoader:
 		self._data_dir = data_dir
 		self._cache = {}
 		self._img_size = img_size
+		self.reload()
 
+
+	def reload(self):
 		self._img_filenames = []
 		for root, subd, files in os.walk(self._data_dir):
 			self._img_filenames += [os.path.join(root, f) for f in files if re.match('.*\\.(png|jpg)',f)]
@@ -95,9 +98,11 @@ class MysqlImageDataLoader:
 	def __init__(self, max_cached_images=sys.maxsize, img_size=(128, 128)):
 		self._cache = {}
 		self._img_size = img_size
+		self.reload()
 
+
+	def reload(self):
 		self._img_filenames = {}
-		
 		conn = MySQLdb.connect('127.0.0.1', 'root', 'DM44DoJ8alquuShI', 'Photos')
 		cur = conn.cursor()
 		self._num_images = cur.execute('SELECT id, folder1, folder2, sys_file FROM Photo')
@@ -106,6 +111,7 @@ class MysqlImageDataLoader:
 			filename = os.path.join('/var/www/uploads/', folder1, folder2, sys_file)
 			if os.path.isfile(filename):
 				self._img_filenames[img_id] = filename
+		conn.close()
 
 
 	## Loads all images from the data directory.

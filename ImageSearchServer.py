@@ -17,6 +17,7 @@ import json
 import sys
 import ImageVectorize
 import ImageDataLoader
+import auto_tagger
 
 conn = MySQLdb.connect('127.0.0.1', 'root', 'DM44DoJ8alquuShI', 'Photos')
 
@@ -68,6 +69,7 @@ class ImageSearchRequestHandler(http.server.BaseHTTPRequestHandler):
 
 	def _do_notifynewimage_POST(self):
 		self.server.search_engine.reload()
+		auto_tagger.autotag_new_images()
 		
 		# No failure cases implemented yet, so just assume it worked
 		response_body = json.dumps({'errstr': ''})

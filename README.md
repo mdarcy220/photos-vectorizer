@@ -36,3 +36,8 @@ Documentation for the server can be found in [`docs/server.md`](docs/server.md).
 ## Notes
 
 An NVIDIA GPU is highly recommended. Training on a CPU may take days or even weeks, whereas a GTX 1070/1080 will complete the (admittedly short for testing purposes) training loop in just a few minutes.
+
+
+## License
+
+This program is released under the GNU AGPL. See the COPYING file for details.

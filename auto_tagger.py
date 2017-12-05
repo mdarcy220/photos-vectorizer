@@ -3,6 +3,7 @@ import cntk as C
 import scipy.ndimage
 import skimage.transform
 import os
+import sys
 
 import MySQLdb
 conn = MySQLdb.connect('127.0.0.1', 'root', 'DM44DoJ8alquuShI', 'Photos')
@@ -24,15 +25,19 @@ def load_image(filename):
 	return np.ascontiguousarray(np.rollaxis(np.rollaxis(np.array(img_data, dtype=np.float32), 0, 3), 0, 3))
 
 
-# You'll need to have a function that goes through the labels file I sent you and maps each line to a component of the output vector.
 # For example, labels_map[0] = "tench, Tinca tinca" and so on.
 labels_map = init_labels_map()
 
-# This includes some specific steps for the saved resnet available from
-# the CNTK repo. That network includes extra inputs/outputs that we can
-# get rid of to leave just the classifier (classifier is named "z" in
-# their saved model)
-raw_model = C.load_model('saved_resnet.dnn')
+model_filename = os.path.join(os.path.dirname(__file__), 'saved_model.dnn')
+try:
+	raw_model = C.load_model(model_filename)
+except ValueError:
+	print('Failed to load the auto-tagger model. Try running download_resnet.py', file=sys.stderr)
+	sys.exit(1)
+
+# Some specific steps for the saved resnet available from the CNTK repo. That
+# network includes extra inputs/outputs that we can get rid of to leave just
+# the classifier (classifier is named "z" in their saved model)
 model = C.combine(raw_model.find_by_name('z'))
 model_input_variable  = model.arguments[0]
 

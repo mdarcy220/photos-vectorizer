@@ -7,6 +7,12 @@ Image Vectorizer for use with johnliggett/Photos for image retrieval.
 
 A complete list of dependencies is not available, but at the very least you will need CNTK 2 and Python 3 installed, along with the Python3 modules `numpy`, `scipy`, `matplotlib`, and `mysqlclient`.
 
+
+### Database Setup
+
+You will need a MySQL server listening on localhost (`127.0.0.1`) with a user `root` and password `DM44DoJ8alquuShI`. See the johnliggett/Photos project for the script to set up the database tables.
+
+
 ### Reverse Image Search Setup
 
 You will need training data in the `largedata/train/` directory (you will need to create the `train` folder). Both `.jpg` and `.png` images will be detected. Any image with at least 3 color channels should work, but be aware that they will be rescaled to `250 x 250` resolution when being passed through the network. If the original image has a non-square aspect ratio, this may lead to distortion and lower quality results.

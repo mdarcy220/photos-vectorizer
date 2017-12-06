@@ -124,7 +124,10 @@ if __name__ == '__main__':
 
 	try:
 		while True:
-			imgnum = int(input('Enter an image number (0-{}): '.format(search_engine.image_loader.num_images()-1)))
+			try:
+				imgnum = int(input('Enter an image number (0-{}): '.format(search_engine.image_loader.num_images()-1)))
+			except ValueError:
+				continue
 			display_lookup_best_and_worst(search_engine.image_loader.get_reshaped(imgnum))
 	except EOFError:
 		print('exit')

@@ -190,7 +190,7 @@ if __name__ == '__main__':
 	vectorizer = ImageVectorize.AutoencoderVectorizer() if cmdargs.vectorizer_type == 'autoencoder' else ImageVectorize.FlatVectorizer()
 	image_loader = ImageDataLoader.MysqlImageDataLoader() if cmdargs.image_source_type == 'mysql' else ImageDataLoader.FilesystemImageDataLoader()
 
-	server = ImageSearchServer(None, ImageSearchEngine(vectorizer=vectorizer, image_loader=image_loader, max_images=10), ('', cmdargs.port), ImageSearchRequestHandler)
+	server = ImageSearchServer(None, ImageSearchEngine(vectorizer=vectorizer, image_loader=image_loader), ('', cmdargs.port), ImageSearchRequestHandler)
 	server.serve_forever()
 
 	conn.close()

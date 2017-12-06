@@ -129,6 +129,8 @@ class MysqlImageDataLoader:
 			filename = os.path.join('/var/www/uploads/', folder1, folder2, sys_file)
 			if os.path.isfile(filename):
 				self._img_filenames[img_id] = filename
+			else:
+				print('Possible database error. This path was found, but is not a real file: {}'.format(filename))
 		conn.close()
 
 

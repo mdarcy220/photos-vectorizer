@@ -44,7 +44,7 @@ class FilesystemImageDataLoader:
 		self.reload()
 
 
-	def reload(self):
+	def reload(self, random_order=False):
 		self._img_filenames = []
 		for root, subd, files in os.walk(self._data_dir):
 			self._img_filenames += [os.path.join(root, f) for f in files if re.match('.*\\.(png|jpg)',f)]

@@ -106,25 +106,25 @@ if __name__ == '__main__':
 		plt.title('Original image', fontsize=10)
 		plt.gcf().subplots_adjust(hspace=0.5)
 
-		lookup_result = lookup_img(image_to_lookup, k_max=3)
+		lookup_result = search_engine.lookup_img(image_to_lookup, k_max=3)
 		for i in range(len(lookup_result)):
 			result = lookup_result[i]
 			plt.subplot(3,3,i+4)
-			plt.imshow(image_loader.get_raw(result[1]))
+			plt.imshow(search_engine.image_loader.get_raw(result[1]))
 			plt.title('Best {}: diff={:.3f}, id={}'.format(i+1, result[0], result[1]), fontsize=10)
 			plt.axis('off')
-		lookup_result = lookup_img(image_to_lookup, k_max=3, find_worst=True)
+		lookup_result = search_engine.lookup_img(image_to_lookup, k_max=3, find_worst=True)
 		for i in range(len(lookup_result)):
 			result = lookup_result[i]
 			plt.subplot(3,3,i+7)
-			plt.imshow(image_loader.get_raw(result[1]))
+			plt.imshow(search_engine.image_loader.get_raw(result[1]))
 			plt.title('Worst {}: diff={:.3f}, id={}'.format(i+1, -1*result[0], result[1]), fontsize=10)
 			plt.axis('off')
 		plt.show()
 
 	try:
 		while True:
-			imgnum = int(input('Enter an image number (0-{}): '.format(len(img_lookup_table)-1)))
+			imgnum = int(input('Enter an image number (0-{}): '.format(search_engine.image_loader.num_images()-1)))
 			display_lookup_best_and_worst(search_engine.image_loader.get_reshaped(imgnum))
 	except EOFError:
 		print('exit')
